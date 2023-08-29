@@ -1,4 +1,3 @@
-
 #
 #  PS Intro 3
 #
@@ -64,7 +63,7 @@ Get-PSDrive | Sort Provider
 Get-PSDrive -PSProvider ActiveDirectory
 cd AD:
 dir
-cd 'AD:\DC=lng,DC=local'
+cd 'AD:\DC=MyDomain,DC=Com'
 dir
 cd .\CN=Users
 dir
@@ -85,7 +84,7 @@ Get-PSDrive | Sort Provider
 Add-Module ActiveDirectory
 
 # Create new provider. FileSystem
-New-PSDrive -Name Opl -PSProvider FileSystem -Root \\NFCPCA01\Public\ITM\Infrastructuur\Documentatie\Powershell\Opleiding
+New-PSDrive -Name Opl -PSProvider FileSystem -Root \\Server.mydomain.local\Public\Share\Documentation
 Dir Opl:\*.ps1
 
 # Create new provider. Registry
@@ -108,14 +107,14 @@ Get-Service WinRM
 
 # Show the configured end points!
 Get-PSSessionConfiguration
-Get-PSSessionConfiguration "Microsoft.PowerShell" | Select *
+Get-PSSessionConfiguration "Microsoft.PowerShell" | Select-Object *
 
 # use the winrm commandline tool to view settings
 winrm get winrm/config
 
 Test-WSMan
-Test-WSMan  behpwa05
-Test-WSMan  behpwa05 -Credential "FVLPROD\udaBZa"
+Test-WSMan  Server001
+Test-WSMan  Server001 -Credential "MYDOMAIN\MyUser"
 
 #endregion
 
@@ -143,13 +142,13 @@ cls
 
 Get-Item WSMan:\localhost\Client\TrustedHosts
 
-Test-WSMan behpwa05
-Invoke-Command -ScriptBlock { hostname } -ComputerName behpwa05
-Invoke-Command -ScriptBlock { hostname } -ComputerName behpwa05  -Credential "FVLPROD\udaBZa"
+Test-WSMan Server001
+Invoke-Command -ScriptBlock { hostname } -ComputerName Server001
+Invoke-Command -ScriptBlock { hostname } -ComputerName Server001  -Credential "MYDOMAIN\MyUser"
 
-Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*.fvlprod.fvl"
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*.MYDOMAIN.com"
 Get-Item WSMan:\localhost\Client\TrustedHosts
-Invoke-Command -ScriptBlock { hostname } -ComputerName behpwa05  -Credential "FVLPROD\udaBZa"
+Invoke-Command -ScriptBlock { hostname } -ComputerName Server001  -Credential "MYDOMAIN\MyUser"
 
 #endregion
 
@@ -157,14 +156,14 @@ Invoke-Command -ScriptBlock { hostname } -ComputerName behpwa05  -Credential "FV
 
 #Prereq: local administrative privileges are needed, lets temp. grant on a number of VDI desktops
 40..50
-40..50 | % { "VDIPM{0}" -f $_ }
-40..50 | % { "VDIPM{0:D4}" -f $_ }
-40..50 | % { "VDIPM{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators }}
-40..50 | % { "VDIPM{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators "fvlprod\Domain users" /add }}
-40..50 | % { "VDIPM{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators }}
+40..50 | % { "WIN{0}" -f $_ }
+40..50 | % { "WIN{0:D4}" -f $_ }
+40..50 | % { "WIN{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators }}
+40..50 | % { "WIN{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators "MYDOMAIN\Domain users" /add }}
+40..50 | % { "WIN{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators }}
 
 # Interactieve sessie naar een client
-Enter-PSSession -ComputerName vdipm0040
+Enter-PSSession -ComputerName WIN0040
 hostname
 dir C:\Temp
 Get-Service BITS,CcmExec
@@ -172,7 +171,7 @@ Restart-Service CcmExec
 Exit-PSSession
 
 # Interactieve sessie naar een server.  "Telnet" - The PowerShell way
-Enter-PSSession -ComputerName sqlpwa20 -Credential 'fvlprod\udabza'
+Enter-PSSession -ComputerName sql0020 -Credential 'MYDOMAIN\MyUser'
 hostname
 dir C:\Temp
 Get-Service BITS,CcmExec
@@ -186,9 +185,9 @@ cd SQLSERVER:\
 dir
 cd SQL
 dir
-cd .\SQLPWA20
+cd .\Database1
 dir
-cd .\VLB_EINDHOVEN
+cd .\Database2
 dir
 cd .\Databases
 dir
@@ -207,11 +206,11 @@ cd C:\
 Exit-PSSession
 
 
-Invoke-Command -ComputerName 'vdipm0040','vdipm0042' -ScriptBlock {
+Invoke-Command -ComputerName 'WIN0040','WIN0042' -ScriptBlock {
   Get-Service CcmExec
 }
 # Returned objects are deserialized
-Invoke-Command -ComputerName 'vdipm0040','vdipm0042' -ScriptBlock {
+Invoke-Command -ComputerName 'WIN0040','WIN0042' -ScriptBlock {
   Get-Service CcmExec
 } | Get-Member
 # Vergelijk met een lokaal ServiceObject
@@ -223,12 +222,12 @@ cat Servers.txt | ForEach-Object { Invoke-Command -ComputerName $_ -ScriptBlock 
 
 
 # Zie Wiki page voor PowerShell remoting voorbeelden
-Start-Process 'http://wikpla01.fvl.com/wiki/index.php/PowerShell_remoting'
+Start-Process 'http://Wiki01.mydomain.com/wiki/index.php/PowerShell_remoting'
 
-$CredBvZ = Get-Credential 'fvlprod\udabza'
+$CredBvZ = Get-Credential 'MYDOMAIN\MyUser'
 Import-Module ActiveDirectory
 $VerbosePreference='Continue'
-ForEach ($COMPUTER in $(Get-ADComputer -Filter * -Searchbase "OU=VM,OU=Win7,OU=FvLWorkstations,DC=fvlprod,DC=fvl")){
+ForEach ($COMPUTER in $(Get-ADComputer -Filter * -Searchbase "OU=VM,OU=WinXP,OU=Workstations,DC=MYDOMAIN,DC=com")){
 # $CMName | sort | ForEach-Object { Invoke-Command -ComputerName $_ -ScriptBlock {  Get-Service CcmExec } }
   if (Test-Connection -ComputerName $COMPUTER.Name -Count 1 -ErrorAction SilentlyContinue) {
     Write-Debug "Connecting to $($COMPUTER.Name)"
@@ -248,7 +247,7 @@ Get-Job  | Receive-Job
 # Arguments:  Local arguments don't work
 $Log='security'
 $Aantal = 5
-$CmpList = 'vdipm0040','vdipm0042','behpwa05'
+$CmpList = 'WIN0040','WIN0042','Server001'
 # DOES NOT work, local vars are not known remote
 Invoke-Command -ComputerName $CmpList -ScriptBlock {
   Get-EventLog -LogName $Log -Newest $Aantal
@@ -260,7 +259,7 @@ Invoke-Command -ComputerName $CmpList -ScriptBlock {
 
 
 # Non Persistent:
-$CmpList = 'vdipm0040','vdipm0043'
+$CmpList = 'WIN0040','WIN0043'
 Invoke-Command -ComputerName $CmpList -ScriptBlock { $a=3 }
 Invoke-Command -ComputerName $CmpList -ScriptBlock { $a }
 
@@ -270,9 +269,9 @@ Get-PSSession
 Invoke-Command -Session $MySession -ScriptBlock { $a=(Dir C:\ -File).Count }
 Invoke-Command -Session $MySession -ScriptBlock { $a }
 
-Get-PSSession -ComputerName 'vdipm0040'
+Get-PSSession -ComputerName 'WIN0040'
 Disconnect-PSSession -Session $MySession
-Get-PSSession -ComputerName 'vdipm0040'
+Get-PSSession -ComputerName 'WIN0040'
 $MySession
 Disconnect-PSSession $MySession
 Invoke-Command -Session $MySession -ScriptBlock { $a }
@@ -283,7 +282,7 @@ Remove-PSSession $MySession
 Get-PSSession
 
 #Implicit remoting
-$MySQL = New-PSSession -ComputerName 'sqlpwa20'  -Credential "FVLPROD\UDABZA"
+$MySQL = New-PSSession -ComputerName 'sqlServer20'  -Credential "MYDOMAIN\MyUser"
 Get-Module -PSSession $MySQL -ListAvailable
 Import-Module -PSSession $MySQL -Name ActiveDirectory -Prefix Rem
 Get-RemAdGroup -filter *
@@ -298,7 +297,7 @@ Get-PSSession
 
 
 #Postreq: local administrative privileges are needed, remove on a number of VDI desktops
-40..50 | % { "VDIPM{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators "fvlprod\Domain users" /delete }}
-40..50 | % { "VDIPM{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators }}
+40..50 | % { "WIN{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators "MYDOMAIN\Domain users" /delete }}
+40..50 | % { "WIN{0:D4}" -f $_ } | % { Invoke-Command -ComputerName $_ -ScriptBlock { Net localgroup administrators }}
 
 #endregion

@@ -58,13 +58,13 @@ Start-Process -FilePath $destination
 #  Example building a Windows form from PowerShell
 #   Source:http://blogs.technet.com/b/stephap/archive/2012/04/23/building-forms-with-powershell-part-1-the-form.aspx
 
-Add-Type -AssemblyName System.Windows.Forms 
+Add-Type -AssemblyName System.Windows.Forms
 $Form = New-Object system.Windows.Forms.Form
 $Form.Text = "Mooi plaatje he?"
- 
+
 $Icon = [system.drawing.icon]::ExtractAssociatedIcon($PSHOME + "\powershell.exe")
 $Form.Icon = $Icon
- 
+
 $Image = [system.drawing.image]::FromFile("$($Env:SystemRoot)\Web\Wallpaper\Theme1\img4.jpg")
 $Form.BackgroundImage = $Image
 $Form.BackgroundImageLayout = "None"
@@ -80,7 +80,7 @@ $Label.BackColor = "Transparent"
 $Label.ForeColor = [System.Drawing.Color]::Azure
 $Label.AutoSize = $True
 $Form.Controls.Add($Label)
-$Form.ShowDialog() 
+$Form.ShowDialog()
 
 
 #
@@ -90,10 +90,10 @@ $Form.ShowDialog()
 Function Get-DeviceDriverService { Param([string]$computer="localhost")
  Add-Type -AssemblyName System.ServiceProcess
  [System.ServiceProcess.ServiceController]::GetDevices($computer)
-} 
+}
 
-Get-DeviceDriverService -computer "Localhost" | 
-  Select-Object -Property name, displayname, servicetype, status, 
+Get-DeviceDriverService -computer "Localhost" |
+  Select-Object -Property name, displayname, servicetype, status,
     DependentServices, ServicesDependOn |
       Out-GridView -Title "Device Driver Services"
 
@@ -119,7 +119,7 @@ $diskSpacewksht.Cells.Item(1,3) = 'Label'
 $diskSpacewksht.Cells.Item(1,4) = 'Size(GB)'
 $diskSpacewksht.Cells.Item(1,5) = 'FreeSpace(GB)'
 $row = 2
-Get-CimInstance -ClassName Win32_Volume | ForEach {
+Get-CimInstance -ClassName Win32_Volume | ForEach-Object {
     $diskSpacewksht.Cells.Item($row,1) = $_.Caption
     $diskSpacewksht.Cells.Item($row,2) = $_.DriveLetter
     $diskSpacewksht.Cells.Item($row,3) = $_.Label
@@ -127,7 +127,7 @@ Get-CimInstance -ClassName Win32_Volume | ForEach {
     $diskSpacewksht.Cells.Item($row,5) = ($_.FreeSpace /1GB)
     $row++
 }
-$usedRange = $diskSpacewksht.UsedRange						
+$usedRange = $diskSpacewksht.UsedRange
 $usedRange.EntireColumn.AutoFit() | Out-Null
 $Excel.DisplayAlerts = $False
 $workbook.SaveAs("C:\temp\DiskSpace.xlsx")
@@ -141,7 +141,7 @@ $Excel.Quit()
 Import-Module "C:\Program Files\SharePoint Online Management Shell\Microsoft.Online.SharePoint.PowerShell"
 Get-Module
 Get-Command -Module Microsoft.Online.SharePoint.PowerShell
-Connect-SPOService -Url https://moebiussyndroom-admin.sharepoint.com -credential "Ben.van.zanten@moebiussyndroom.nl"
+Connect-SPOService -Url https://nameofyourtenant.sharepoint.com -credential "This.is@nameofyourtenant.com"
 Get-SPOSite
 Get-SPODeletedSite
 Get-SPOWebTemplate
